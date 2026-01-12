@@ -24,6 +24,8 @@ export interface Question {
   text: string;
   options: string[];
   correctAnswer: number;
+  explanation?: string;
+  topic?: string;
 }
 
 export interface Quiz {
@@ -73,18 +75,24 @@ const initialQuizzes: Quiz[] = [
         text: 'What is 2 + 2?',
         options: ['3', '4', '5', '6'],
         correctAnswer: 1,
+        explanation: 'Basic addition: 2 + 2 equals 4. This is a fundamental arithmetic operation.',
+        topic: 'Addition',
       },
       {
         id: 'q2',
         text: 'What is 5 × 3?',
         options: ['12', '13', '14', '15'],
         correctAnswer: 3,
+        explanation: 'Multiplication: 5 × 3 means adding 5 three times (5 + 5 + 5) which equals 15.',
+        topic: 'Multiplication',
       },
       {
         id: 'q3',
         text: 'What is 10 - 7?',
         options: ['2', '3', '4', '5'],
         correctAnswer: 1,
+        explanation: 'Subtraction: 10 - 7 equals 3. Count down from 10 to find the difference.',
+        topic: 'Subtraction',
       },
     ],
   },
@@ -100,12 +108,16 @@ const initialQuizzes: Quiz[] = [
         text: 'How many sides does a triangle have?',
         options: ['2', '3', '4', '5'],
         correctAnswer: 1,
+        explanation: 'A triangle is a polygon with three sides and three angles. The prefix "tri-" means three.',
+        topic: 'Polygons',
       },
       {
         id: 'q5',
         text: 'What is the sum of angles in a triangle?',
         options: ['90°', '180°', '270°', '360°'],
         correctAnswer: 1,
+        explanation: 'The interior angles of any triangle always add up to 180 degrees. This is a fundamental property of triangles.',
+        topic: 'Angles',
       },
     ],
   },
@@ -121,6 +133,8 @@ const initialQuizzes: Quiz[] = [
         text: 'What is the formula for force?',
         options: ['F = m/a', 'F = ma', 'F = m + a', 'F = m - a'],
         correctAnswer: 1,
+        explanation: 'Newton\'s Second Law states that Force equals mass times acceleration (F = ma). This is one of the most important equations in physics.',
+        topic: 'Forces',
       },
     ],
   },

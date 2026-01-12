@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Quiz, QuizAttempt, User } from '../App';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { ArrowLeft, Download, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Download, RotateCcw, CheckCircle, XCircle, BookOpen } from 'lucide-react';
 import { Badge } from './ui/badge';
 import QuizTaker from './QuizTaker';
 
@@ -29,6 +29,9 @@ export default function QuizResults({
 }: QuizResultsProps) {
   const [retryingIncorrect, setRetryingIncorrect] = useState(false);
   const [incorrectQuestionIds, setIncorrectQuestionIds] = useState<string[]>([]);
+  const [retryingSingleQuestion, setRetryingSingleQuestion] = useState(false);
+  const [singleQuestionId, setSingleQuestionId] = useState<string>('');
+  const [showStudyMode, setShowStudyMode] = useState(false);
 
   const latestAttempt = attempts.reduce((latest, current) =>
     current.timestamp > latest.timestamp ? current : latest
@@ -75,6 +78,11 @@ export default function QuizResults({
     setRetryingIncorrect(true);
   };
 
+  const handleRetrySingleQuestion = (questionId: string) => {
+    setSingleQuestionId(questionId);
+    setRetryingSingleQuestion(true);
+  };
+
   if (retryingIncorrect) {
     return (
       <QuizTaker
@@ -87,6 +95,22 @@ export default function QuizResults({
           setIncorrectQuestionIds([]);
         }}
         retryIncorrectOnly={incorrectQuestionIds}
+      />
+    );
+  }
+
+  if (retryingSingleQuestion) {
+    return (
+      <QuizTaker
+        quiz={quiz}
+        currentUser={currentUser}
+        attempts={allAttempts}
+        onUpdateAttempts={onUpdateAttempts}
+        onComplete={() => {
+          setRetryingSingleQuestion(false);
+          setSingleQuestionId('');
+        }}
+        retrySingleQuestion={singleQuestionId}
       />
     );
   }
@@ -159,7 +183,17 @@ export default function QuizResults({
 
         <Card>
           <CardHeader>
-            <CardTitle>Question Review</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Question Review</CardTitle>
+              <Button
+                onClick={() => setShowStudyMode(!showStudyMode)}
+                variant="outline"
+                size="sm"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                {showStudyMode ? 'Hide' : 'Show'} Explanations
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {quiz.questions.map((question, index) => {
@@ -183,6 +217,11 @@ export default function QuizResults({
                       <p className="mb-2">
                         <strong>Question {index + 1}:</strong> {question.text}
                       </p>
+                      {question.topic && (
+                        <Badge variant="outline" className="mb-2">
+                          {question.topic}
+                        </Badge>
+                      )}
                       <div className="space-y-1 text-sm">
                         <p>
                           <span className="text-gray-600">Your answer:</span>{' '}
@@ -199,6 +238,24 @@ export default function QuizResults({
                           </p>
                         )}
                       </div>
+                      {showStudyMode && question.explanation && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm">
+                            <strong className="text-blue-900">Explanation:</strong>{' '}
+                            <span className="text-blue-800">{question.explanation}</span>
+                          </p>
+                        </div>
+                      )}
+                      {!isCorrect && (
+                        <Button
+                          onClick={() => handleRetrySingleQuestion(question.id)}
+                          variant="outline"
+                          className="mt-2"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Retry This Question
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

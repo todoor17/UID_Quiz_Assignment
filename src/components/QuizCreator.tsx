@@ -3,7 +3,9 @@ import { Quiz, Question } from '../App';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent } from './ui/card';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, FileText } from 'lucide-react';
+import { quizTemplates, QuizTemplate } from './QuizTemplates';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 
 interface QuizCreatorProps {
   classId: string;
@@ -11,6 +13,8 @@ interface QuizCreatorProps {
   onUpdateQuizzes: (quizzes: Quiz[]) => void;
   onClose: () => void;
   currentUserId: string;
+  editingQuiz?: Quiz;
+  duplicateQuiz?: Quiz;
 }
 
 export default function QuizCreator({
@@ -19,16 +23,42 @@ export default function QuizCreator({
   onUpdateQuizzes,
   onClose,
   currentUserId,
+  editingQuiz,
+  duplicateQuiz,
 }: QuizCreatorProps) {
-  const [quizName, setQuizName] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: `q${Date.now()}`,
-      text: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
-    },
-  ]);
+  const [showTemplates, setShowTemplates] = useState(!editingQuiz && !duplicateQuiz);
+  const [quizName, setQuizName] = useState(
+    editingQuiz?.name || (duplicateQuiz ? `${duplicateQuiz.name} (Copy)` : '')
+  );
+  const [questions, setQuestions] = useState<Question[]>(
+    editingQuiz?.questions || 
+    duplicateQuiz?.questions ||
+    [
+      {
+        id: `q${Date.now()}`,
+        text: '',
+        options: ['', '', '', ''],
+        correctAnswer: 0,
+      },
+    ]
+  );
+
+  const handleTemplateSelect = (template: QuizTemplate) => {
+    setQuizName(template.settings.defaultName);
+    setQuestions(
+      template.defaultQuestions.map((q, idx) => ({
+        id: `q${Date.now()}_${idx}`,
+        text: q.text || '',
+        options: q.options || ['', '', '', ''],
+        correctAnswer: q.correctAnswer || 0,
+      }))
+    );
+    setShowTemplates(false);
+  };
+
+  const handleSkipTemplate = () => {
+    setShowTemplates(false);
+  };
 
   const handleAddQuestion = () => {
     setQuestions([
@@ -93,6 +123,42 @@ export default function QuizCreator({
 
   return (
     <div className="space-y-4">
+      {showTemplates && (
+        <Card className="bg-indigo-50 border-indigo-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Choose a Template
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Start with a pre-configured template or create from scratch
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              {quizTemplates.map((template, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleTemplateSelect(template)}
+                  className="p-4 text-left border-2 border-gray-200 bg-white rounded-lg hover:border-indigo-600 hover:bg-indigo-50 transition-all"
+                >
+                  <p className="mb-1">{template.name}</p>
+                  <p className="text-sm text-gray-600">{template.description}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {template.settings.questionCount} questions
+                  </p>
+                </button>
+              ))}
+            </div>
+            <Button onClick={handleSkipTemplate} variant="outline" className="w-full">
+              Skip and Create from Scratch
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      
       <div>
         <label className="text-sm">Quiz Name</label>
         <Input

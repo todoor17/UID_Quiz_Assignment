@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Plus, Eye, EyeOff, Trash2, TrendingUp, Users } from 'lucide-react';
+import { Plus, Eye, EyeOff, Trash2, TrendingUp, Users, Copy } from 'lucide-react';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import QuizCreator from './QuizCreator';
@@ -30,6 +30,7 @@ export default function QuizManager({
   const [isCreating, setIsCreating] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'questions' | 'attempts'>('name');
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
+  const [duplicatingQuiz, setDuplicatingQuiz] = useState<Quiz | null>(null);
 
   const classQuizzes = quizzes.filter(q => q.classId === classId);
 
@@ -153,6 +154,14 @@ export default function QuizManager({
                         />
                       </DialogContent>
                     </Dialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDuplicatingQuiz(quiz)}
+                    >
+                      <Copy className="w-4 h-4 mr-1" />
+                      Duplicate
+                    </Button>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={quiz.visible}
@@ -192,6 +201,25 @@ export default function QuizManager({
             onClose={() => setIsCreating(false)}
             currentUserId={currentUserId}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!duplicatingQuiz} onOpenChange={() => setDuplicatingQuiz(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Duplicate Quiz</DialogTitle>
+            <DialogDescription>Create a copy of this quiz to edit</DialogDescription>
+          </DialogHeader>
+          {duplicatingQuiz && (
+            <QuizCreator
+              classId={classId}
+              quizzes={quizzes}
+              onUpdateQuizzes={onUpdateQuizzes}
+              onClose={() => setDuplicatingQuiz(null)}
+              currentUserId={currentUserId}
+              duplicateQuiz={duplicatingQuiz}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

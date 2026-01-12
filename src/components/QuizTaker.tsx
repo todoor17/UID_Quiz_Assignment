@@ -3,7 +3,8 @@ import { Quiz, User, QuizAttempt } from '../App';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 
 interface QuizTakerProps {
   quiz: Quiz;
@@ -12,6 +13,7 @@ interface QuizTakerProps {
   onUpdateAttempts: (attempts: QuizAttempt[]) => void;
   onComplete: () => void;
   retryIncorrectOnly?: string[];
+  retrySingleQuestion?: string;
 }
 
 export default function QuizTaker({
@@ -21,14 +23,19 @@ export default function QuizTaker({
   onUpdateAttempts,
   onComplete,
   retryIncorrectOnly,
+  retrySingleQuestion,
 }: QuizTakerProps) {
   const questionsToShow = retryIncorrectOnly
     ? quiz.questions.filter(q => retryIncorrectOnly.includes(q.id))
+    : retrySingleQuestion
+    ? quiz.questions.filter(q => q.id === retrySingleQuestion)
     : quiz.questions;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>(new Array(questionsToShow.length).fill(-1));
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAutoExport, setShowAutoExport] = useState(false);
+  const [latestAttempt, setLatestAttempt] = useState<QuizAttempt | null>(null);
 
   const currentQuestion = questionsToShow[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questionsToShow.length) * 100;
@@ -78,6 +85,39 @@ export default function QuizTaker({
 
     onUpdateAttempts([...attempts, newAttempt]);
     setIsSubmitted(true);
+    setLatestAttempt(newAttempt);
+    setShowAutoExport(true);
+  };
+
+  const handleAutoExport = () => {
+    if (!latestAttempt) return;
+    
+    let csvContent = 'Question,Your Answer,Correct Answer,Result\n';
+
+    questionsToShow.forEach((question, index) => {
+      const yourAnswer = question.options[answers[index]] || 'Not answered';
+      const correctAnswer = question.options[question.correctAnswer];
+      const isCorrect = answers[index] === question.correctAnswer;
+
+      csvContent += `"${question.text}","${yourAnswer}","${correctAnswer}","${
+        isCorrect ? 'Correct' : 'Incorrect'
+      }"\n`;
+    });
+
+    csvContent += `\nScore,${latestAttempt.score}%\n`;
+    csvContent += `Date,${new Date(latestAttempt.timestamp).toLocaleString()}\n`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${quiz.name}_results.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowAutoExport(false);
   };
 
   if (isSubmitted) {
@@ -87,27 +127,49 @@ export default function QuizTaker({
     const score = Math.round((correctCount / questionsToShow.length) * 100);
 
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle className="text-center">Quiz Completed!</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-center">
-              <div className="text-6xl mb-4">
-                {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
+      <>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl">
+            <CardHeader>
+              <CardTitle className="text-center">Quiz Completed!</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <div className="text-6xl mb-4">
+                  {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
+                </div>
+                <h2 className="text-4xl mb-2">{score}%</h2>
+                <p className="text-gray-600">
+                  You got {correctCount} out of {questionsToShow.length} questions correct
+                </p>
               </div>
-              <h2 className="text-4xl mb-2">{score}%</h2>
-              <p className="text-gray-600">
-                You got {correctCount} out of {questionsToShow.length} questions correct
-              </p>
-            </div>
-            <Button onClick={onComplete} className="w-full">
-              View Results
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+              <Button onClick={onComplete} className="w-full">
+                View Results
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Dialog open={showAutoExport} onOpenChange={setShowAutoExport}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Download Results?</DialogTitle>
+              <DialogDescription>
+                Would you like to download your quiz results as an Excel file?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAutoExport(false)}>
+                No, Thanks
+              </Button>
+              <Button onClick={handleAutoExport}>
+                <Download className="w-4 h-4 mr-2" />
+                Download Excel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 

@@ -169,6 +169,7 @@ export default function StudentDashboard({
         <Tabs defaultValue="quizzes" className="space-y-4">
           <TabsList>
             <TabsTrigger value="quizzes">Available Quizzes</TabsTrigger>
+            <TabsTrigger value="history">Quiz History</TabsTrigger>
             <TabsTrigger value="practice">Practice</TabsTrigger>
           </TabsList>
 
@@ -240,20 +241,90 @@ export default function StudentDashboard({
             })}
           </TabsContent>
 
-          <TabsContent value="practice">
+          <TabsContent value="history">
             <Card>
               <CardHeader>
-                <CardTitle>Random Practice Quiz</CardTitle>
+                <CardTitle>Quiz History</CardTitle>
                 <CardDescription>
-                  Create a random quiz from all available questions
+                  View your past quiz attempts
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => setIsPracticing(true)}>
-                  Generate Practice Quiz
-                </Button>
+                <div className="space-y-3">
+                  {attempts
+                    .filter(att => att.studentId === currentUser.id)
+                    .map(att => {
+                      const quiz = quizzes.find(q => q.id === att.quizId);
+                      if (!quiz) return null;
+
+                      return (
+                        <div
+                          key={att.id}
+                          className="flex items-center justify-between p-4 border rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <h3 className="text-base">{quiz.name}</h3>
+                            <p className="text-sm text-gray-600">
+                              {quiz.questions.length} questions
+                            </p>
+                            <Badge variant="secondary" className="mt-1">
+                              Score: {att.score}%
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setViewingResultsId(att.quizId)}
+                            >
+                              View Results
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="practice">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Practice</CardTitle>
+                  <CardDescription>
+                    Instant 10-question practice quiz
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => setIsPracticing(true)}
+                    className="w-full"
+                  >
+                    Start 10-Question Practice
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Custom Practice</CardTitle>
+                  <CardDescription>
+                    Create a practice quiz with custom settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => setIsPracticing(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Customize Practice Quiz
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
