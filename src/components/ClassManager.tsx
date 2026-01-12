@@ -4,7 +4,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Plus, Trash2 } from 'lucide-react';
-import { Badge } from './ui/badge';
 
 interface ClassManagerProps {
   classData: Class;

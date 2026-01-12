@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Quiz, QuizAttempt, User } from '../App';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Plus, Eye, EyeOff, Trash2, TrendingUp, Users, Copy } from 'lucide-react';
 import { Switch } from './ui/switch';
@@ -29,22 +28,43 @@ export default function QuizManager({
 }: QuizManagerProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [sortBy, setSortBy] = useState<'name' | 'questions' | 'attempts'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
   const [duplicatingQuiz, setDuplicatingQuiz] = useState<Quiz | null>(null);
 
   const classQuizzes = quizzes.filter(q => q.classId === classId);
 
   const sortedQuizzes = [...classQuizzes].sort((a, b) => {
+    let comparison = 0;
+
     if (sortBy === 'name') {
-      return a.name.localeCompare(b.name);
+      comparison = a.name.localeCompare(b.name);
     } else if (sortBy === 'questions') {
-      return b.questions.length - a.questions.length;
+      comparison = a.questions.length - b.questions.length;
     } else {
       const aAttempts = attempts.filter(att => att.quizId === a.id).length;
       const bAttempts = attempts.filter(att => att.quizId === b.id).length;
-      return bAttempts - aAttempts;
+      comparison = aAttempts - bAttempts;
     }
+
+    if (comparison === 0) {
+      comparison = a.name.localeCompare(b.name);
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
   });
+
+  const handleSortChange = (nextSortBy: 'name' | 'questions' | 'attempts') => {
+    setSortBy(prevSortBy => {
+      if (prevSortBy === nextSortBy) {
+        setSortDirection(prevDirection => (prevDirection === 'asc' ? 'desc' : 'asc'));
+        return prevSortBy;
+      }
+
+      setSortDirection(nextSortBy === 'name' ? 'asc' : 'desc');
+      return nextSortBy;
+    });
+  };
 
   const handleToggleVisibility = (quizId: string) => {
     onUpdateQuizzes(
@@ -89,23 +109,23 @@ export default function QuizManager({
             <Button
               variant={sortBy === 'name' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSortBy('name')}
+              onClick={() => handleSortChange('name')}
             >
-              Sort by Name
+              Sort by Name{sortBy === 'name' ? (sortDirection === 'asc' ? ' (A-Z)' : ' (Z-A)') : ''}
             </Button>
             <Button
               variant={sortBy === 'questions' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSortBy('questions')}
+              onClick={() => handleSortChange('questions')}
             >
-              Sort by Questions
+              Sort by Questions{sortBy === 'questions' ? (sortDirection === 'asc' ? ' (Low-High)' : ' (High-Low)') : ''}
             </Button>
             <Button
               variant={sortBy === 'attempts' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSortBy('attempts')}
+              onClick={() => handleSortChange('attempts')}
             >
-              Sort by Attempts
+              Sort by Attempts{sortBy === 'attempts' ? (sortDirection === 'asc' ? ' (Low-High)' : ' (High-Low)') : ''}
             </Button>
           </div>
 
