@@ -173,25 +173,25 @@ export default function QuizCreator({
         {questions.map((question, qIndex) => (
           <Card key={question.id}>
             <CardContent className="pt-6 space-y-3">
-              <div className="flex items-start gap-2">
-                <div className="flex-1">
-                  <label className="text-sm">Question {qIndex + 1}</label>
+              <div className="space-y-1">
+                <label className="text-sm">Question {qIndex + 1}</label>
+                <div className="flex items-center gap-2">
                   <Input
                     value={question.text}
                     onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
                     placeholder="Enter question"
-                    className="mt-1"
+                    className="flex-1"
                   />
+                  {questions.length > 1 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveQuestion(qIndex)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
-                {questions.length > 1 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemoveQuestion(qIndex)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
               </div>
 
               <div className="space-y-2">
