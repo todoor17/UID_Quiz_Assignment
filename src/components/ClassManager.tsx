@@ -87,23 +87,31 @@ export default function ClassManager({
         <CardContent>
           <div className="space-y-2">
             {enrolledStudents.map(student => (
-              <div
-                key={student.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
-                <div>
-                  <p>{student.name}</p>
-                  <p className="text-sm text-gray-600">{student.email}</p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleRemoveStudent(student.id)}
+                <div
+                    key={student.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+                  <div>
+                    <p>{student.name}</p>
+                    <a
+                        href="https://moodle.cs.utcluj.ro/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-indigo-600 hover:underline"
+                    >
+                      {student.email}
+                    </a>
+                  </div>
+                  <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveStudent(student.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
             ))}
+
             {enrolledStudents.length === 0 && (
               <p className="text-sm text-gray-500 text-center py-8">
                 No students enrolled yet
