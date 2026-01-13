@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
@@ -222,12 +222,36 @@ const initialAttempts: QuizAttempt[] = [
 
 const rolePath = (role: User["role"]) => `/${role}`;
 
+interface RequireRoleProps {
+  role: User["role"];
+  currentUser: User | null;
+  children: ReactElement;
+}
+
+const RequireRole = ({ role, currentUser, children }: RequireRoleProps) => {
+  if (!currentUser) {
+    return <Navigate to="/" replace />;
+  }
+  if (currentUser.role !== role) {
+    return <Navigate to={rolePath(currentUser.role)} replace />;
+  }
+  return children;
+};
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [classes, setClasses] = useState<Class[]>(initialClasses);
   const [quizzes, setQuizzes] = useState<Quiz[]>(initialQuizzes);
   const [attempts, setAttempts] = useState<QuizAttempt[]>(initialAttempts);
+  const pendingScrollRestore = useRef<number | null>(null);
+  const unlockTimer = useRef<number | null>(null);
+  const scrollLock = useRef<{
+    position: string;
+    top: string;
+    width: string;
+    paddingRight: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   const handleLogin = (user: User) => {
@@ -242,21 +266,74 @@ export default function App() {
 
   const fallbackPath = currentUser ? rolePath(currentUser.role) : "/";
 
-  const RequireRole = ({
-    role,
-    children,
-  }: {
-    role: User["role"];
-    children: ReactElement;
-  }) => {
-    if (!currentUser) {
-      return <Navigate to="/" replace />;
+  const lockScroll = (scrollY: number) => {
+    if (typeof document === "undefined" || typeof window === "undefined") {
+      return;
     }
-    if (currentUser.role !== role) {
-      return <Navigate to={rolePath(currentUser.role)} replace />;
+    if (scrollLock.current) {
+      return;
     }
-    return children;
+    const body = document.body;
+    const scrollBarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    scrollLock.current = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      paddingRight: body.style.paddingRight,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    if (scrollBarWidth > 0) {
+      body.style.paddingRight = `${scrollBarWidth}px`;
+    }
   };
+
+  const unlockScroll = () => {
+    if (typeof document === "undefined" || !scrollLock.current) {
+      return;
+    }
+    const body = document.body;
+    const { position, top, width, paddingRight } = scrollLock.current;
+    body.style.position = position;
+    body.style.top = top;
+    body.style.width = width;
+    body.style.paddingRight = paddingRight;
+    scrollLock.current = null;
+  };
+
+  const updateQuizzes = (nextQuizzes: Quiz[]) => {
+    if (typeof window !== "undefined") {
+      const scrollY = window.scrollY;
+      pendingScrollRestore.current = scrollY;
+      lockScroll(scrollY);
+    }
+    setQuizzes(nextQuizzes);
+  };
+
+  useLayoutEffect(() => {
+    if (pendingScrollRestore.current === null || typeof window === "undefined") {
+      return;
+    }
+    const scrollY = pendingScrollRestore.current;
+    pendingScrollRestore.current = null;
+    if (unlockTimer.current !== null) {
+      window.clearTimeout(unlockTimer.current);
+      unlockTimer.current = null;
+    }
+    unlockTimer.current = window.setTimeout(() => {
+      unlockScroll();
+      window.scrollTo({ top: scrollY, behavior: "auto" });
+      unlockTimer.current = null;
+    }, 120);
+    return () => {
+      if (unlockTimer.current !== null) {
+        window.clearTimeout(unlockTimer.current);
+        unlockTimer.current = null;
+      }
+    };
+  }, [quizzes]);
 
   return (
     <Routes>
@@ -273,7 +350,7 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <RequireRole role="admin">
+          <RequireRole role="admin" currentUser={currentUser}>
             <AdminDashboard
               currentUser={currentUser as User}
               users={users}
@@ -288,7 +365,7 @@ export default function App() {
       <Route
         path="/teacher"
         element={
-          <RequireRole role="teacher">
+          <RequireRole role="teacher" currentUser={currentUser}>
             <TeacherDashboard
               currentUser={currentUser as User}
               users={users}
@@ -297,7 +374,7 @@ export default function App() {
               attempts={attempts}
               onLogout={handleLogout}
               onUpdateClasses={setClasses}
-              onUpdateQuizzes={setQuizzes}
+              onUpdateQuizzes={updateQuizzes}
             />
           </RequireRole>
         }
@@ -305,7 +382,7 @@ export default function App() {
       <Route
         path="/student"
         element={
-          <RequireRole role="student">
+          <RequireRole role="student" currentUser={currentUser}>
             <StudentDashboard
               currentUser={currentUser as User}
               users={users}

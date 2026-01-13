@@ -285,7 +285,7 @@ export default function TeacherDashboard({
                 {/* Main Content Tabs */}
                 {selectedClass ? (
                     <Tabs defaultValue="quizzes" className="space-y-4">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="flex w-full">
                             <TabsTrigger value="quizzes" className="flex items-center gap-2">
                                 <BookOpen className="w-4 h-4" />
                                 Quizzes

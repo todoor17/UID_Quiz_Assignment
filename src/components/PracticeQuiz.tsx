@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { ArrowLeft, Shuffle, Zap, Brain, Settings } from 'lucide-react';
 import { Badge } from './ui/badge';
 import QuizTaker from './QuizTaker';
+import QuizResults from './QuizResults';
 
 interface PracticeQuizProps {
   myQuizzes: Quiz[];
@@ -25,6 +26,8 @@ export default function PracticeQuiz({
   const [questionCount, setQuestionCount] = useState(10);
   const [practiceQuiz, setPracticeQuiz] = useState<Quiz | null>(null);
   const [showCustom, setShowCustom] = useState(false);
+  const [practiceAttempts, setPracticeAttempts] = useState<QuizAttempt[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
   const allQuestions = myQuizzes.flatMap(quiz => quiz.questions);
 
@@ -108,6 +111,8 @@ export default function PracticeQuiz({
       createdBy: currentUser.id,
     };
 
+    setPracticeAttempts([]);
+    setShowResults(false);
     setPracticeQuiz(quiz);
   };
 
@@ -130,6 +135,8 @@ export default function PracticeQuiz({
       createdBy: currentUser.id,
     };
 
+    setPracticeAttempts([]);
+    setShowResults(false);
     setPracticeQuiz(quiz);
   };
 
@@ -152,20 +159,42 @@ export default function PracticeQuiz({
       createdBy: currentUser.id,
     };
 
+    setPracticeAttempts([]);
+    setShowResults(false);
     setPracticeQuiz(quiz);
   };
+
+  if (practiceQuiz && showResults) {
+    const quizAttempts = practiceAttempts.filter(
+      attempt => attempt.quizId === practiceQuiz.id
+    );
+    if (quizAttempts.length > 0) {
+      return (
+        <QuizResults
+          quiz={practiceQuiz}
+          attempts={quizAttempts}
+          currentUser={currentUser}
+          onBack={() => {
+            setShowResults(false);
+            setPracticeQuiz(null);
+          }}
+          onRetryQuiz={() => setShowResults(false)}
+          onRetryIncorrect={() => setShowResults(false)}
+          allAttempts={practiceAttempts}
+          onUpdateAttempts={setPracticeAttempts}
+        />
+      );
+    }
+  }
 
   if (practiceQuiz) {
     return (
       <QuizTaker
         quiz={practiceQuiz}
         currentUser={currentUser}
-        attempts={attempts}
-        onUpdateAttempts={onUpdateAttempts}
-        onComplete={() => {
-          setPracticeQuiz(null);
-          onBack();
-        }}
+        attempts={practiceAttempts}
+        onUpdateAttempts={setPracticeAttempts}
+        onComplete={() => setShowResults(true)}
       />
     );
   }

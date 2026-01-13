@@ -1,6 +1,8 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import { cn } from "./utils"
+
 const alertVariants = cva(
     "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
     {
@@ -10,7 +12,7 @@ const alertVariants = cva(
                 destructive:
                     "border-red-500/50 text-red-600 dark:border-red-500 [&>svg]:text-red-600 bg-red-50",
                 success:
-                    "border-green-500/50 text-green-800 dark:border-green-500 [&>svg]:text-green-800 bg-green-50",
+                    "border-green-200 text-green-600 [&>svg]:text-green-600 bg-green-50",
             },
         },
         defaultVariants: {
@@ -22,37 +24,43 @@ const alertVariants = cva(
 const Alert = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
+>(({ className, variant, children, ...props }, ref) => (
     <div
         ref={ref}
         role="alert"
-        className={alertVariants({ variant })}
+        className={cn(alertVariants({ variant }), className)}
         {...props}
-    />
+    >
+        {children}
+    </div>
 ))
 Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef<
     HTMLParagraphElement,
     React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
     <h5
         ref={ref}
-        className="mb-1 font-medium leading-none tracking-tight"
+        className={cn("mb-1 font-medium leading-none tracking-tight", className)}
         {...props}
-    />
+    >
+        {children}
+    </h5>
 ))
 AlertTitle.displayName = "AlertTitle"
 
 const AlertDescription = React.forwardRef<
     HTMLParagraphElement,
     React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
     <div
         ref={ref}
-        className="text-sm [&_p]:leading-relaxed"
+        className={cn("text-sm [&_p]:leading-relaxed", className)}
         {...props}
-    />
+    >
+        {children}
+    </div>
 ))
 AlertDescription.displayName = "AlertDescription"
 

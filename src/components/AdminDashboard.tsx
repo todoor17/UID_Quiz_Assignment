@@ -93,7 +93,7 @@ export default function AdminDashboard({
         }
 
         if (!validateEmail(trimmedEmail)) {
-            setTeacherError('Please enter a valid email address (e.g., teacher@school.edu)');
+            setTeacherError('Please enter a valid email address (e.g., teacher@utcluj.ro)');
             return;
         }
 
@@ -115,8 +115,7 @@ export default function AdminDashboard({
         setNewTeacherEmail('');
         setTeacherSuccess(`Successfully added ${trimmedName} to the system`);
 
-        // Clear success message after 3 seconds
-        setTimeout(() => setTeacherSuccess(''), 3000);
+        // Success message clears on the next action.
     };
 
     const handleDeleteTeacher = (teacherId: string) => {
@@ -135,7 +134,7 @@ export default function AdminDashboard({
 
         onUpdateUsers(users.filter(u => u.id !== teacherId));
         setTeacherSuccess(`Successfully removed ${teacher?.name} from the system`);
-        setTimeout(() => setTeacherSuccess(''), 3000);
+        // Success message clears on the next action.
     };
 
     const handleAddClass = () => {
@@ -187,8 +186,7 @@ export default function AdminDashboard({
         setSelectedTeacherId('');
         setClassSuccess(`Successfully created "${trimmedClassName}" and assigned to ${teacher.name}`);
 
-        // Clear success message after 3 seconds
-        setTimeout(() => setClassSuccess(''), 3000);
+        // Success message clears on the next action.
     };
 
     const handleDeleteClass = (classId: string) => {
@@ -204,7 +202,7 @@ export default function AdminDashboard({
 
         onUpdateClasses(classes.filter(c => c.id !== classId));
         setClassSuccess(`Successfully deleted "${cls?.name}"`);
-        setTimeout(() => setClassSuccess(''), 3000);
+        // Success message clears on the next action.
     };
 
     const getTeacherName = (teacherId: string) => {
@@ -246,12 +244,11 @@ export default function AdminDashboard({
                             </Alert>
                         )}
                         {teacherSuccess && (
-                            <Alert className="border-green-200 bg-green-50 text-green-800">
+                            <Alert variant="success">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription>{teacherSuccess}</AlertDescription>
                             </Alert>
                         )}
-
                         <Card>
                             <CardHeader>
                                 <CardTitle>Add New Teacher</CardTitle>
@@ -266,7 +263,7 @@ export default function AdminDashboard({
                                         onKeyPress={(e) => e.key === 'Enter' && handleAddTeacher()}
                                     />
                                     <Input
-                                        placeholder="Email (e.g., teacher@school.edu)"
+                                        placeholder="Email (e.g., teacher@utcluj.ro)"
                                         type="email"
                                         value={newTeacherEmail}
                                         onChange={(e) => setNewTeacherEmail(e.target.value)}
@@ -334,7 +331,7 @@ export default function AdminDashboard({
                             </Alert>
                         )}
                         {classSuccess && (
-                            <Alert className="border-green-200 bg-green-50 text-green-800">
+                            <Alert variant="success">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertDescription>{classSuccess}</AlertDescription>
                             </Alert>

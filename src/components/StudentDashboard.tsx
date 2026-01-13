@@ -68,10 +68,6 @@ export default function StudentDashboard({
     setActiveQuizId(quizId);
   };
 
-  const handleQuizComplete = () => {
-    setActiveQuizId(null);
-  };
-
   if (activeQuizId) {
     const quiz = quizzes.find(q => q.id === activeQuizId);
     if (quiz) {
@@ -81,7 +77,7 @@ export default function StudentDashboard({
           currentUser={currentUser}
           attempts={attempts}
           onUpdateAttempts={onUpdateAttempts}
-          onComplete={handleQuizComplete}
+          onComplete={() => setActiveQuizId(null)}
         />
       );
     }
@@ -289,42 +285,22 @@ export default function StudentDashboard({
           </TabsContent>
 
           <TabsContent value="practice">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Practice</CardTitle>
-                  <CardDescription>
-                    Instant 10-question practice quiz
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => setIsPracticing(true)}
-                    className="w-full"
-                  >
-                    Start 10-Question Practice
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Custom Practice</CardTitle>
-                  <CardDescription>
-                    Create a practice quiz with custom settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => setIsPracticing(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Customize Practice Quiz
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Custom Practice</CardTitle>
+                <CardDescription>
+                  Create a practice quiz with custom settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => setIsPracticing(true)}
+                  className="w-full"
+                >
+                  Customize Practice Quiz
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
